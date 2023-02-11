@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/dgrijalva/jwt-go"
 )
 
 // jwtKey which we'll use in our jwt token
@@ -64,7 +64,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create token to use with claims
-	token := jwt.NewWithClaims(jwt.SigninMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// get the token string from above data
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
@@ -83,7 +83,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // takes in cookie
-// check errors:
+// check errors:“
 // if no cookie error
 // bad request error
 // create reference to claims object
