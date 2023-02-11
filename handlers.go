@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -80,5 +81,54 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		})
 
 }
-func Home(w http.ResponseWriter, r *http.Request)    {}
+
+// takes in cookie
+// check errors:
+// if no cookie error
+// bad request error
+// create reference to claims object
+// pass JWTKey and return token
+// if err is not nil and err is type signature invalid
+// -unauthorized request || badrequest
+// if token is not valid -unauthorized request
+// if data valid, pass data back to client with success message
+func Home(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	tokenStr := cookie.Value
+	// pass token back using jwtKey
+	claims := &Claims{}
+
+	// returns claims object using the tokenString
+	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
+		func(t *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if !tkn.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	// if token matches, success message and pass claims back
+	w.Write([]byte(fmt.Sprintf("Hello, %s", claims.Username)))
+
+}
 func Refresh(w http.ResponseWriter, r *http.Request) {}
